@@ -47,7 +47,7 @@ To get a local copy up and running, follow these simple steps:
 
 | Login | Signup | Home | Profile |
 |-------|--------|------|---------|
-| ![Login](https://via.placeholder.com/150) | ![Signup](https://via.placeholder.com/150) | ![Home](https://via.placeholder.com/150) | ![Profile](https://via.placeholder.com/150) |
+| <img src="screenshots/login.png" width="160"> | <img src="screenshots/signup.png" width="160"> | <img src="screenshots/home.png" width="160"> | <img src="screenshots/profile.png" width="160"> |
 
 ## 👨‍💻 Developer
 
