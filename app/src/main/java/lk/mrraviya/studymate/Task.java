@@ -2,16 +2,19 @@ package lk.mrraviya.studymate;
 
 import com.google.firebase.firestore.Exclude;
 
+/**
+ * Model class for a Task.
+ */
 public class Task {
-    private String id;
+    private String id; // Unique ID from Firestore
     private String title;
     private String subject;
     private String date;
     private int categoryColor;
     private boolean isCompleted;
 
+    // Required empty constructor for Firestore
     public Task() {
-        // Required for Firestore
     }
 
     public Task(String title, String subject, String date, int categoryColor, boolean isCompleted) {
@@ -22,6 +25,7 @@ public class Task {
         this.isCompleted = isCompleted;
     }
 
+    // ID is excluded from Firestore document but stored in the object for easy access
     @Exclude
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }

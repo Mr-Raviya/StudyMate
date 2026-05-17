@@ -17,6 +17,9 @@ import com.google.android.material.card.MaterialCardView;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+/**
+ * Screen to display user's profile details.
+ */
 public class UserProfileActivity extends AppCompatActivity {
 
     private ImageView ivProfileImage;
@@ -29,10 +32,9 @@ public class UserProfileActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         EdgeToEdge.enable(this);
-        // Force light mode
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         
-        // Set status bar color to white and icons to dark
+        // System bar styling
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
@@ -48,6 +50,7 @@ public class UserProfileActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Initialize views
         ivProfileImage = findViewById(R.id.iv_profile_image);
         cvProfileImage = (MaterialCardView) ivProfileImage.getParent();
         tvFullNameTop = findViewById(R.id.tv_full_name_top);
@@ -55,29 +58,33 @@ public class UserProfileActivity extends AppCompatActivity {
         tvEmail = findViewById(R.id.tv_email);
         tvDateJoined = findViewById(R.id.tv_date_joined);
 
+        // Toolbar setup
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        
         toolbar.setNavigationOnClickListener(v -> finish());
 
         loadUserData();
 
-        // Setup Edit Profile button
+        // Edit Profile button
         findViewById(R.id.btn_edit_profile).setOnClickListener(v -> {
             android.content.Intent intent = new android.content.Intent(this, EditProfileActivity.class);
             startActivity(intent);
         });
 
-        // Setup Sign Out button
+        // Sign Out button
         findViewById(R.id.btn_sign_out).setOnClickListener(v -> showSignOutConfirmationDialog());
     }
 
     @Override
     protected void onResume() {
         super.onResume();
+        // Refresh profile data when returning
         loadUserData();
     }
 
+    /**
+     * Fetch user profile data from Firestore.
+     */
     private void loadUserData() {
         if (mAuth.getCurrentUser() == null) return;
 
@@ -101,6 +108,7 @@ public class UserProfileActivity extends AppCompatActivity {
                             tvDateJoined.setText("Not available");
                         }
 
+                        // Load Base64 image
                         if (imageString != null && !imageString.isEmpty()) {
                             try {
                                 byte[] decodedString = Base64.decode(imageString, Base64.DEFAULT);
@@ -122,13 +130,16 @@ public class UserProfileActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Show confirmation popup before signing out.
+     */
     private void showSignOutConfirmationDialog() {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.RoundedConfirmationDialog)
                 .setTitle("Sign Out")
                 .setMessage("Do you really want to sign out from StudyMate?")
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .setPositiveButton("Sign Out", (dialog, which) -> {
-                    // Sign out from Firebase
+                    // Firebase Sign out
                     FirebaseAuth.getInstance().signOut();
 
                     android.content.Intent intent = new android.content.Intent(this, LoginActivity.class);

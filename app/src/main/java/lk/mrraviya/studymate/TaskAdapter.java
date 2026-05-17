@@ -12,8 +12,12 @@ import androidx.core.content.ContextCompat;
 import androidx.recyclerview.widget.RecyclerView;
 import java.util.List;
 
+/**
+ * Adapter to manage the list of tasks in the RecyclerView.
+ */
 public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder> {
 
+    // Listener for task actions
     public interface OnTaskActionListener {
         void onDeleteTask(int position);
         void onEditTask(int position, Task task);
@@ -31,6 +35,7 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @NonNull
     @Override
     public TaskViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        // Inflate the task item layout
         View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_task, parent, false);
         return new TaskViewHolder(view);
     }
@@ -38,14 +43,18 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     @Override
     public void onBindViewHolder(@NonNull TaskViewHolder holder, int position) {
         Task task = taskList.get(position);
+        
+        // Bind data to views
         holder.tvTitle.setText(task.getTitle());
         holder.tvSubject.setText(task.getSubject());
         holder.tvDate.setText(task.getDate());
         
+        // Remove listener before setting checked status to avoid recursive calls
         holder.checkBox.setOnCheckedChangeListener(null);
         holder.checkBox.setChecked(task.isCompleted());
         updateTaskStyle(holder, task, task.isCompleted());
 
+        // Listener for checkbox status change
         holder.checkBox.setOnCheckedChangeListener((buttonView, isChecked) -> {
             task.setCompleted(isChecked);
             updateTaskStyle(holder, task, isChecked);
@@ -54,12 +63,14 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
             }
         });
 
+        // Delete button click
         holder.btnDelete.setOnClickListener(v -> {
             if (actionListener != null) {
                 actionListener.onDeleteTask(holder.getAdapterPosition());
             }
         });
 
+        // Edit button click
         holder.ivEdit.setOnClickListener(v -> {
             if (actionListener != null) {
                 int pos = holder.getAdapterPosition();
@@ -68,29 +79,34 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         });
     }
 
+    /**
+     * Update the visual style of a task based on its completion status.
+     */
     private void updateTaskStyle(TaskViewHolder holder, Task task, boolean isChecked) {
         int taskColor = ContextCompat.getColor(holder.itemView.getContext(), task.getCategoryColor());
         int grayColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.text_grey);
         int blackColor = ContextCompat.getColor(holder.itemView.getContext(), R.color.black);
         
         if (isChecked) {
+            // Apply strike-through and gray color for completed tasks
             holder.tvTitle.setPaintFlags(holder.tvTitle.getPaintFlags() | Paint.STRIKE_THRU_TEXT_FLAG);
             holder.tvTitle.setTextColor(grayColor);
             holder.ivEdit.setImageTintList(ColorStateList.valueOf(grayColor));
             holder.ivDelete.setImageTintList(ColorStateList.valueOf(grayColor));
         } else {
+            // Restore normal style for pending tasks
             holder.tvTitle.setPaintFlags(holder.tvTitle.getPaintFlags() & (~Paint.STRIKE_THRU_TEXT_FLAG));
             holder.tvTitle.setTextColor(blackColor);
             holder.ivEdit.setImageTintList(ColorStateList.valueOf(blackColor));
             holder.ivDelete.setImageTintList(ColorStateList.valueOf(blackColor));
         }
 
-        // Keep these functional and colored
+        // Apply category colors
         holder.ivEdit.setEnabled(true);
         holder.tvSubject.setBackgroundTintList(ColorStateList.valueOf(taskColor));
         holder.checkBox.setButtonTintList(ColorStateList.valueOf(taskColor));
         
-        // Calendar icon always gray
+        // Calendar icon color
         holder.ivCalendar.setImageTintList(ColorStateList.valueOf(grayColor));
     }
 
@@ -99,21 +115,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         return taskList.size();
     }
 
-    public void addTask(Task task) {
-        taskList.add(0, task);
-        notifyItemInserted(0);
-    }
-
-    public void deleteTask(int position) {
-        taskList.remove(position);
-        notifyItemRemoved(position);
-    }
-
-    public void updateTask(int position, Task task) {
-        taskList.set(position, task);
-        notifyItemChanged(position);
-    }
-
+    /**
+     * ViewHolder to hold task item views.
+     */
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvSubject, tvDate;
         CheckBox checkBox;

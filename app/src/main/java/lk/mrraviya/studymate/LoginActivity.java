@@ -3,8 +3,6 @@ package lk.mrraviya.studymate;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -21,6 +19,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
+/**
+ * Screen for user login.
+ */
 public class LoginActivity extends AppCompatActivity {
 
     private TextInputLayout emailLayout, passwordLayout;
@@ -37,11 +38,13 @@ public class LoginActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
+        // Redirect to MainActivity if user is already logged in
         if (mAuth.getCurrentUser() != null) {
             startActivity(new Intent(LoginActivity.this, MainActivity.class));
             finish();
         }
         
+        // System bar styling
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().setNavigationBarColor(Color.WHITE);
         
@@ -52,12 +55,14 @@ public class LoginActivity extends AppCompatActivity {
             windowInsetsController.setAppearanceLightNavigationBars(true);
         }
 
+        // Apply window padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(android.R.id.content), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Initialize views
         emailLayout = findViewById(R.id.email_layout);
         passwordLayout = findViewById(R.id.password_layout);
         etEmail = findViewById(R.id.email_edit_text);
@@ -65,23 +70,29 @@ public class LoginActivity extends AppCompatActivity {
         loginButton = findViewById(R.id.sign_in_button);
         progressBar = findViewById(R.id.login_progress_bar);
 
+        // Login button click
         loginButton.setOnClickListener(v -> {
             if (validateInputs()) {
                 loginUser();
             }
         });
 
+        // Navigate to Forgot Password
         findViewById(R.id.forgot_password_text).setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, ForgotPasswordActivity.class);
             startActivity(intent);
         });
 
+        // Navigate to Signup
         findViewById(R.id.create_account_text).setOnClickListener(v -> {
             Intent intent = new Intent(LoginActivity.this, SignupActivity.class);
             startActivity(intent);
         });
     }
 
+    /**
+     * Perform login using Firebase Authentication.
+     */
     private void loginUser() {
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
         String password = etPassword.getText() != null ? etPassword.getText().toString().trim() : "";
@@ -104,6 +115,9 @@ public class LoginActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Show/Hide loading progress on the button.
+     */
     private void setLoading(boolean isLoading) {
         if (isLoading) {
             loginButton.setEnabled(false);
@@ -116,6 +130,9 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Check if user inputs are valid.
+     */
     private boolean validateInputs() {
         boolean isValid = true;
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";

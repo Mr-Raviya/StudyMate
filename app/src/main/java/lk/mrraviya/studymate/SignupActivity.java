@@ -26,6 +26,9 @@ import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
 
+/**
+ * Screen for user registration.
+ */
 public class SignupActivity extends AppCompatActivity {
 
     private TextInputLayout firstNameLayout, lastNameLayout, emailLayout, passwordLayout, confirmPasswordLayout;
@@ -41,9 +44,11 @@ public class SignupActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_signup);
 
+        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // System bar styling
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().setNavigationBarColor(Color.WHITE);
 
@@ -54,12 +59,14 @@ public class SignupActivity extends AppCompatActivity {
             windowInsetsController.setAppearanceLightNavigationBars(true);
         }
 
+        // Apply window padding
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             androidx.core.graphics.Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
 
+        // Initialize views
         firstNameLayout = findViewById(R.id.first_name_layout);
         lastNameLayout = findViewById(R.id.last_name_layout);
         emailLayout = findViewById(R.id.email_layout);
@@ -75,15 +82,20 @@ public class SignupActivity extends AppCompatActivity {
         signupButton = findViewById(R.id.create_account_button);
         progressBar = findViewById(R.id.signup_progress_bar);
 
+        // Signup button click
         signupButton.setOnClickListener(v -> {
             if (validateInputs()) {
                 registerUser();
             }
         });
 
+        // Navigate back to Login
         findViewById(R.id.sign_in_text).setOnClickListener(v -> finish());
     }
 
+    /**
+     * Register user with Email and Password using Firebase Auth.
+     */
     private void registerUser() {
         String firstName = etFirstName.getText() != null ? etFirstName.getText().toString().trim() : "";
         String lastName = etLastName.getText() != null ? etLastName.getText().toString().trim() : "";
@@ -97,6 +109,7 @@ public class SignupActivity extends AppCompatActivity {
                     if (task.isSuccessful()) {
                         FirebaseUser user = mAuth.getCurrentUser();
                         if (user != null) {
+                            // Save profile data to Firestore
                             saveUserData(user.getUid(), firstName, lastName, email);
                         }
                     } else {
@@ -108,8 +121,11 @@ public class SignupActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Save user profile details to Firestore.
+     */
     private void saveUserData(String userId, String firstName, String lastName, String email) {
-        // Automatically capture the current date
+        // Capture current date as join date
         SimpleDateFormat sdf = new SimpleDateFormat("dd MMMM, yyyy", Locale.getDefault());
         String currentDate = sdf.format(new Date());
 
@@ -117,7 +133,7 @@ public class SignupActivity extends AppCompatActivity {
         userMap.put("firstName", firstName);
         userMap.put("lastName", lastName);
         userMap.put("email", email);
-        userMap.put("dateJoined", currentDate); // Save the date joined
+        userMap.put("dateJoined", currentDate);
 
         db.collection("users").document(userId)
                 .set(userMap)
@@ -135,6 +151,9 @@ public class SignupActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Show/Hide loading progress on the button.
+     */
     private void setLoading(boolean isLoading) {
         if (isLoading) {
             signupButton.setEnabled(false);
@@ -147,6 +166,9 @@ public class SignupActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Check if signup inputs are valid.
+     */
     private boolean validateInputs() {
         boolean isValid = true;
 

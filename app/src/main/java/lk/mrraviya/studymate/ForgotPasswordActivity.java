@@ -2,8 +2,6 @@ package lk.mrraviya.studymate;
 
 import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Patterns;
 import android.view.View;
 import android.widget.ProgressBar;
@@ -17,6 +15,9 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 
+/**
+ * Screen to reset user password via email link.
+ */
 public class ForgotPasswordActivity extends AppCompatActivity {
 
     private TextInputLayout emailLayout;
@@ -33,6 +34,7 @@ public class ForgotPasswordActivity extends AppCompatActivity {
 
         mAuth = FirebaseAuth.getInstance();
 
+        // System bar styling
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().setNavigationBarColor(Color.WHITE);
 
@@ -43,11 +45,13 @@ public class ForgotPasswordActivity extends AppCompatActivity {
             windowInsetsController.setAppearanceLightNavigationBars(true);
         }
 
+        // Initialize views
         emailLayout = findViewById(R.id.email_layout);
         etEmail = findViewById(R.id.email_edit_text);
         btnReset = findViewById(R.id.btn_reset_password);
         progressBar = findViewById(R.id.reset_progress_bar);
 
+        // Reset password button click
         btnReset.setOnClickListener(v -> {
             if (validateInput()) {
                 resetPassword();
@@ -55,6 +59,9 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Send a password reset email via Firebase.
+     */
     private void resetPassword() {
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
 
@@ -74,6 +81,9 @@ public class ForgotPasswordActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Show/Hide loading progress on the button.
+     */
     private void setLoading(boolean isLoading) {
         if (isLoading) {
             btnReset.setEnabled(false);
@@ -86,6 +96,9 @@ public class ForgotPasswordActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Validate the email input.
+     */
     private boolean validateInput() {
         String email = etEmail.getText() != null ? etEmail.getText().toString().trim() : "";
         emailLayout.setError(null);

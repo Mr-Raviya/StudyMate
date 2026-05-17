@@ -28,6 +28,9 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Screen to edit user profile details and profile picture.
+ */
 public class EditProfileActivity extends AppCompatActivity {
 
     private ImageView ivProfileImage;
@@ -44,6 +47,7 @@ public class EditProfileActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
         
+        // System bar styling
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
 
@@ -59,6 +63,7 @@ public class EditProfileActivity extends AppCompatActivity {
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
 
+        // Initialize views
         ivProfileImage = findViewById(R.id.iv_edit_profile_image);
         etFirstName = findViewById(R.id.et_first_name);
         etLastName = findViewById(R.id.et_last_name);
@@ -68,10 +73,12 @@ public class EditProfileActivity extends AppCompatActivity {
 
         loadUserData();
 
+        // Toolbar setup
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         toolbar.setNavigationOnClickListener(v -> finish());
 
+        // Image picker launcher
         ActivityResultLauncher<String> imagePickerLauncher = registerForActivityResult(
                 new ActivityResultContracts.GetContent(),
                 uri -> {
@@ -81,22 +88,28 @@ public class EditProfileActivity extends AppCompatActivity {
                         ivProfileImage.setScaleType(ImageView.ScaleType.CENTER_CROP);
                         ivProfileImage.setImageTintList(null);
                         
+                        // Convert chosen image to Base64
                         base64Image = uriToBase64(uri);
                     }
                 }
         );
 
+        // Change Picture click
         findViewById(R.id.layout_change_picture).setOnClickListener(v -> imagePickerLauncher.launch("image/*"));
 
+        // Save button click
         btnSave.setOnClickListener(v -> saveUserData());
     }
 
+    /**
+     * Convert an image Uri to a Base64 string for efficient Firestore storage.
+     */
     private String uriToBase64(Uri uri) {
         try {
             InputStream inputStream = getContentResolver().openInputStream(uri);
             Bitmap bitmap = BitmapFactory.decodeStream(inputStream);
             
-            // Resize bitmap to keep it under 1MB limit (e.g., max 500x500)
+            // Resize bitmap to keep it under Firestore limits
             Bitmap resizedBitmap = Bitmap.createScaledBitmap(bitmap, 400, 400, true);
             
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -109,6 +122,9 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Load current user data to the input fields.
+     */
     private void loadUserData() {
         if (mAuth.getCurrentUser() == null) return;
 
@@ -121,6 +137,7 @@ public class EditProfileActivity extends AppCompatActivity {
                         String imageString = documentSnapshot.getString("profileImageUrl");
                         
                         if (imageString != null && !imageString.isEmpty()) {
+                            // Decode Base64 string to bitmap
                             byte[] decodedString = Base64.decode(imageString, Base64.DEFAULT);
                             Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                             ivProfileImage.setImageBitmap(decodedByte);
@@ -132,6 +149,9 @@ public class EditProfileActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Validate and save user data to Firestore.
+     */
     private void saveUserData() {
         String firstName = etFirstName.getText() != null ? etFirstName.getText().toString().trim() : "";
         String lastName = etLastName.getText() != null ? etLastName.getText().toString().trim() : "";
@@ -146,6 +166,9 @@ public class EditProfileActivity extends AppCompatActivity {
         updateFirestore(firstName, lastName, email, base64Image);
     }
 
+    /**
+     * Show/Hide loading progress on the button.
+     */
     private void setLoading(boolean isLoading) {
         if (isLoading) {
             btnSave.setEnabled(false);
@@ -158,6 +181,9 @@ public class EditProfileActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Update user details in the Firestore document.
+     */
     private void updateFirestore(String fName, String lName, String email, String imageUrl) {
         Map<String, Object> userMap = new HashMap<>();
         userMap.put("firstName", fName);

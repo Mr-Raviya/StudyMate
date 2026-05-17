@@ -35,6 +35,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * The main screen of the app where tasks are displayed.
+ */
 public class MainActivity extends AppCompatActivity {
 
     private TaskAdapter taskAdapter;
@@ -46,18 +49,22 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Force light mode
         androidx.appcompat.app.AppCompatDelegate.setDefaultNightMode(androidx.appcompat.app.AppCompatDelegate.MODE_NIGHT_NO);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        // Initialize Firebase
         mAuth = FirebaseAuth.getInstance();
         db = FirebaseFirestore.getInstance();
         
+        // Reference to user's specific tasks collection in Firestore
         FirebaseUser user = mAuth.getCurrentUser();
         if (user != null) {
             tasksRef = db.collection("users").document(user.getUid()).collection("tasks");
         }
 
+        // Set system bar colors
         getWindow().setStatusBarColor(Color.WHITE);
         getWindow().setNavigationBarColor(Color.TRANSPARENT);
         
@@ -68,10 +75,12 @@ public class MainActivity extends AppCompatActivity {
             windowInsetsController.setAppearanceLightNavigationBars(true);
         }
 
+        // Setup UI components
         setupNavigationDrawer();
         setupRecyclerView();
         loadUserProfile();
 
+        // Click listeners
         findViewById(R.id.fab_add).setOnClickListener(v -> showAddTaskDialog());
 
         findViewById(R.id.cv_profile).setOnClickListener(v -> {
@@ -83,9 +92,13 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Refresh user profile when returning to this screen
         loadUserProfile();
     }
 
+    /**
+     * Load user name and profile picture from Firestore.
+     */
     private void loadUserProfile() {
         if (mAuth.getCurrentUser() == null) return;
         
@@ -98,6 +111,7 @@ public class MainActivity extends AppCompatActivity {
                         String imageString = documentSnapshot.getString("profileImageUrl");
                         if (imageString != null && !imageString.isEmpty()) {
                             try {
+                                // Convert Base64 string back to image
                                 byte[] decodedString = Base64.decode(imageString, Base64.DEFAULT);
                                 Bitmap decodedByte = BitmapFactory.decodeByteArray(decodedString, 0, decodedString.length);
                                 ivToolbarProfile.setImageBitmap(decodedByte);
@@ -115,6 +129,9 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+    /**
+     * Setup the list that displays tasks.
+     */
     private void setupRecyclerView() {
         RecyclerView rvTasks = findViewById(R.id.rv_tasks);
         taskList = new ArrayList<>();
@@ -141,6 +158,9 @@ public class MainActivity extends AppCompatActivity {
         listenToTasks();
     }
 
+    /**
+     * Listen for changes in the tasks collection in real-time.
+     */
     private void listenToTasks() {
         if (tasksRef == null) return;
 
@@ -152,6 +172,7 @@ public class MainActivity extends AppCompatActivity {
                 }
 
                 if (value != null) {
+                    // Add sample tasks if the list is empty for the first time
                     if (value.isEmpty()) {
                         SharedPreferences prefs = getSharedPreferences("AppPrefs", MODE_PRIVATE);
                         boolean samplesAdded = prefs.getBoolean("samples_added_" + mAuth.getUid(), false);
@@ -176,6 +197,9 @@ public class MainActivity extends AppCompatActivity {
             });
     }
 
+    /**
+     * Add initial dummy tasks to Firestore.
+     */
     private void addSampleTasksToFirestore() {
         List<Task> samples = new ArrayList<>();
         samples.add(new Task("Complete DB Assignment", "ICT", "Mar 25, 2026", R.color.cat_ict, false));
@@ -189,12 +213,18 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Update the completed status of a task in Firestore.
+     */
     private void updateTaskStatusInFirestore(Task task) {
         if (task.getId() != null) {
             tasksRef.document(task.getId()).update("completed", task.isCompleted());
         }
     }
 
+    /**
+     * Calculate and update the progress bar.
+     */
     private void updateProgress() {
         if (taskList == null) return;
         
@@ -223,6 +253,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     * Show a popup to confirm task deletion.
+     */
     private void showDeleteConfirmationDialog(int position) {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.RoundedConfirmationDialog)
                 .setTitle("Delete Task")
@@ -238,6 +271,9 @@ public class MainActivity extends AppCompatActivity {
                 .show();
     }
 
+    /**
+     * Setup the side navigation menu.
+     */
     private void setupNavigationDrawer() {
         DrawerLayout drawerLayout = findViewById(R.id.drawer_layout);
         NavigationView navigationView = findViewById(R.id.nav_view);
@@ -261,6 +297,9 @@ public class MainActivity extends AppCompatActivity {
         });
     }
 
+    /**
+     * Show a popup when user clicks the exit button.
+     */
     private void showExitConfirmationDialog() {
         new com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.RoundedConfirmationDialog)
                 .setTitle("Exit")
@@ -274,6 +313,9 @@ public class MainActivity extends AppCompatActivity {
         showAddTaskDialog(false, -1, null);
     }
 
+    /**
+     * Show a custom dialog to add or edit a task.
+     */
     private void showAddTaskDialog(boolean isEdit, int position, Task taskToEdit) {
         android.view.View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_task, null);
         
@@ -297,6 +339,7 @@ public class MainActivity extends AppCompatActivity {
             subjectSpinner.setText(taskToEdit.getSubject(), false);
         }
 
+        // List of subjects with their colors
         List<SubjectAdapter.SubjectItem> subjects = new ArrayList<>();
         subjects.add(new SubjectAdapter.SubjectItem("ICT", R.color.cat_ict));
         subjects.add(new SubjectAdapter.SubjectItem("Math", R.color.cat_math));
@@ -324,6 +367,7 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
+        // Date picker popup
         etDueDate.setOnClickListener(v -> {
             CalendarConstraints constraints = new CalendarConstraints.Builder()
                     .setValidator(DateValidatorPointForward.now())
@@ -344,6 +388,7 @@ public class MainActivity extends AppCompatActivity {
             datePicker.show(getSupportFragmentManager(), "DATE_PICKER");
         });
 
+        // Dialog creation
         com.google.android.material.dialog.MaterialAlertDialogBuilder builder = 
                 new com.google.android.material.dialog.MaterialAlertDialogBuilder(this, R.style.CustomDialogTheme);
         builder.setView(dialogView);
@@ -371,6 +416,7 @@ public class MainActivity extends AppCompatActivity {
                     }
                 }
 
+                // Save or update task in Firestore
                 if (isEdit) {
                     taskToEdit.setTitle(title);
                     taskToEdit.setSubject(subject);
@@ -386,6 +432,7 @@ public class MainActivity extends AppCompatActivity {
 
         dialog.show();
         
+        // Adjust dialog size
         if (dialog.getWindow() != null) {
             int width = (int) (320 * getResources().getDisplayMetrics().density);
             dialog.getWindow().setLayout(width, android.view.ViewGroup.LayoutParams.WRAP_CONTENT);
